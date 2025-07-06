@@ -60,10 +60,19 @@ export const isTimeRestricted = (time: string, day: string, isPrivateClass: bool
 
 // Get available time slots based on day and restrictions
 export const getAvailableTimeSlots = (day: string): string[] => {
-  // Morning slots: 7:30 AM to 11:30 AM
-  const morningSlots = ['07:30', '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30'];
+  // Weekend restrictions
+  if (day === 'Sunday') {
+    // Sunday: 10:00 AM onwards only
+    return ['10:00', '10:30', '11:00', '11:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30'];
+  }
   
-  // Evening slots: 5:00 PM to 7:30 PM (17:00 to 19:30)
+  if (day === 'Saturday') {
+    // Saturday: 8:30 AM or 9:00 AM onwards
+    return ['08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30'];
+  }
+  
+  // Weekdays: Include 7:30 AM start
+  const morningSlots = ['07:30', '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30'];
   const eveningSlots = ['17:00', '17:30', '18:00', '18:30', '19:00', '19:30'];
   
   return [...morningSlots, ...eveningSlots];
@@ -88,7 +97,7 @@ export const isEveningSlot = (time: string): boolean => {
 
 export const isPeakHour = (time: string): boolean => {
   const hour = parseInt(time.split(':')[0]);
-  // Peak hours: 7:00-11:30 AM and 5:30-8:00 PM
+  // Peak hours: 7:30-11:30 AM and 5:30-8:00 PM
   return (hour >= 7 && hour <= 11) || (hour >= 17 && hour <= 19);
 };
 
@@ -185,37 +194,37 @@ export const calculateClassScore = (classData: ClassData[]): number => {
 export const getDayGuidelines = (day: string): { focus: string; avoid: string[]; priority: string[] } => {
   const guidelines = {
     'Monday': {
-      focus: 'Strong start with high-demand formats & senior trainers',
+      focus: 'Strong start with high-demand formats & senior trainers - MUST start at 7:30 AM',
       avoid: ['Studio Recovery'],
       priority: ['Studio Barre 57', 'Studio FIT', 'Studio powerCycle', 'Studio Mat 57']
     },
     'Tuesday': {
-      focus: 'Balance beginner & intermediate classes',
+      focus: 'Balance beginner & intermediate classes - MUST start at 7:30 AM',
       avoid: ['Studio HIIT', 'Studio Amped Up!'],
       priority: ['Studio Barre 57', 'Studio Mat 57', 'Studio Foundations', 'Studio Cardio Barre']
     },
     'Wednesday': {
-      focus: 'Midweek peak - repeat Monday\'s popular formats',
+      focus: 'Midweek peak - repeat Monday\'s popular formats - MUST start at 7:30 AM',
       avoid: [],
       priority: ['Studio Barre 57', 'Studio FIT', 'Studio powerCycle', 'Studio Mat 57']
     },
     'Thursday': {
-      focus: 'Lighter mix with recovery formats',
+      focus: 'Lighter mix with recovery formats - MUST start at 7:30 AM',
       avoid: [],
       priority: ['Studio Recovery', 'Studio Mat 57', 'Studio Cardio Barre', 'Studio Back Body Blaze']
     },
     'Friday': {
-      focus: 'Energy-focused with HIIT/Advanced classes',
+      focus: 'Energy-focused with HIIT/Advanced classes - MUST start at 7:30 AM',
       avoid: [],
       priority: ['Studio HIIT', 'Studio Amped Up!', 'Studio FIT', 'Studio Cardio Barre']
     },
     'Saturday': {
-      focus: 'Family-friendly & community formats',
+      focus: 'Family-friendly & community formats - Start 8:30 AM or 9:00 AM onwards',
       avoid: ['Studio HIIT'],
       priority: ['Studio Barre 57', 'Studio Foundations', 'Studio Recovery', 'Studio Mat 57']
     },
     'Sunday': {
-      focus: 'Max 4-5 classes, highest scoring formats only',
+      focus: 'Max 4-5 classes, highest scoring formats only - Start 10:00 AM onwards',
       avoid: ['Studio HIIT', 'Studio Amped Up!'],
       priority: ['Studio Barre 57', 'Studio Recovery', 'Studio Mat 57']
     }
@@ -334,6 +343,52 @@ export const getDefaultTopClasses = (): Array<{
       teacher: 'Atulan Purohit',
       avgParticipants: 8.62,
       isLocked: true
+    },
+    // ADD 7:30 AM WEEKDAY CLASSES - High priority
+    {
+      classFormat: 'Studio Barre 57',
+      day: 'Monday',
+      time: '07:30',
+      location: 'Kwality House, Kemps Corner',
+      teacher: 'Anisha Shah',
+      avgParticipants: 12.5,
+      isLocked: true
+    },
+    {
+      classFormat: 'Studio Mat 57',
+      day: 'Tuesday',
+      time: '07:30',
+      location: 'Kwality House, Kemps Corner',
+      teacher: 'Vivaran Bhatia',
+      avgParticipants: 11.8,
+      isLocked: true
+    },
+    {
+      classFormat: 'Studio FIT',
+      day: 'Wednesday',
+      time: '07:30',
+      location: 'Kwality House, Kemps Corner',
+      teacher: 'Anisha Shah',
+      avgParticipants: 13.2,
+      isLocked: true
+    },
+    {
+      classFormat: 'Studio Cardio Barre',
+      day: 'Thursday',
+      time: '07:30',
+      location: 'Kwality House, Kemps Corner',
+      teacher: 'Mrigakshi Dixit',
+      avgParticipants: 10.9,
+      isLocked: true
+    },
+    {
+      classFormat: 'Studio Barre 57',
+      day: 'Friday',
+      time: '07:30',
+      location: 'Kwality House, Kemps Corner',
+      teacher: 'Pranjali Jain',
+      avgParticipants: 12.1,
+      isLocked: true
     }
   ];
 };
@@ -368,9 +423,8 @@ export const generateIntelligentSchedule = async (
   const locations = ['Kwality House, Kemps Corner', 'Supreme HQ, Bandra', 'Kenkere House'];
   const days = options.targetDay ? [options.targetDay] : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   
-  // Get all available teachers
-  const allTeachers = [...new Set(csvData.map(item => item.teacherName))]
-    .filter(teacher => !teacher.includes('Nishanth') && !teacher.includes('Saniya'));
+  // Get all available teachers using the utility function to ensure all teachers are included
+  const allTeachers = getUniqueTeachers(csvData, customTeachers);
 
   // Initialize teacher tracking
   allTeachers.forEach(teacher => {
@@ -515,8 +569,56 @@ export const generateIntelligentSchedule = async (
     }
   }
 
-  // Phase 1: Fill ALL available time slots systematically
-  console.log('Phase 1: Filling all available time slots...');
+  // Phase 1: MANDATORY 7:30 AM classes for weekdays at Kwality House
+  console.log('Phase 1: Ensuring 7:30 AM weekday classes...');
+  
+  for (const day of days) {
+    if (['Saturday', 'Sunday'].includes(day)) continue; // Skip weekends
+    
+    const existing730Class = optimizedClasses.find(cls => 
+      cls.day === day && 
+      cls.time === '07:30' && 
+      cls.location === 'Kwality House, Kemps Corner'
+    );
+    
+    if (!existing730Class) {
+      const guidelines = getDayGuidelines(day);
+      const bestClass = getBestClassForSlot('Kwality House, Kemps Corner', day, '07:30', guidelines);
+      
+      if (bestClass) {
+        // Find best teacher for this class
+        let bestTeacher = getBestTeacherForClass(csvData, bestClass.classFormat, 'Kwality House, Kemps Corner', day, '07:30');
+        
+        // If best teacher not available, try senior trainers
+        if (!bestTeacher || !canAssignTeacher(bestTeacher, day, '07:30', getClassDuration(bestClass.classFormat), bestClass.classFormat)) {
+          bestTeacher = seniorTrainers.find(teacher => 
+            allTeachers.some(t => t.includes(teacher)) &&
+            canAssignTeacher(allTeachers.find(t => t.includes(teacher)) || '', day, '07:30', getClassDuration(bestClass.classFormat), bestClass.classFormat)
+          );
+          
+          if (bestTeacher) {
+            bestTeacher = allTeachers.find(t => t.includes(bestTeacher)) || bestTeacher;
+          }
+        }
+        
+        if (bestTeacher) {
+          assignClass({
+            classFormat: bestClass.classFormat,
+            location: 'Kwality House, Kemps Corner',
+            day: day,
+            time: '07:30',
+            avgParticipants: bestClass.avgParticipants,
+            avgRevenue: bestClass.avgRevenue
+          }, bestTeacher);
+          
+          console.log(`Scheduled 7:30 AM class for ${day}: ${bestClass.classFormat} with ${bestTeacher}`);
+        }
+      }
+    }
+  }
+
+  // Phase 2: Fill ALL available time slots systematically
+  console.log('Phase 2: Filling all available time slots...');
   
   for (const day of days) {
     const guidelines = getDayGuidelines(day);
@@ -537,7 +639,7 @@ export const generateIntelligentSchedule = async (
         let classesToSchedule = 1;
         
         if (location === 'Kwality House, Kemps Corner') {
-          if (['09:00', '11:00', '18:00', '19:15'].includes(time)) {
+          if (['07:30', '09:00', '11:00', '18:00', '19:15'].includes(time)) {
             classesToSchedule = 2; // 2 parallel classes at specified times
           }
         } else if (location === 'Supreme HQ, Bandra') {
@@ -597,8 +699,8 @@ export const generateIntelligentSchedule = async (
     }
   }
 
-  // Phase 2: Optimize ALL teachers to reach 15 hours (or 10 for new trainers)
-  console.log('Phase 2: Optimizing ALL teacher hours to maximum...');
+  // Phase 3: Optimize ALL teachers to reach 15 hours (or 10 for new trainers)
+  console.log('Phase 3: Optimizing ALL teacher hours to maximum...');
   
   for (const teacher of allTeachers) {
     const currentHours = teacherHoursTracker[teacher] || 0;
@@ -649,8 +751,8 @@ export const generateIntelligentSchedule = async (
     }
   }
 
-  // Phase 3: Ensure class diversity and fill remaining gaps
-  console.log('Phase 3: Ensuring class diversity...');
+  // Phase 4: Ensure class diversity and fill remaining gaps
+  console.log('Phase 4: Ensuring class diversity...');
   
   const requiredFormats = ['Studio Cardio Barre', 'Studio Mat 57', 'Studio Back Body Blaze', 'Studio Amped Up!'];
   
@@ -697,8 +799,8 @@ export const generateIntelligentSchedule = async (
     }
   }
 
-  // Phase 4: Consolidate trainers per shift (minimize trainers per location/shift)
-  console.log('Phase 4: Consolidating trainer shifts...');
+  // Phase 5: Consolidate trainers per shift (minimize trainers per location/shift)
+  console.log('Phase 5: Consolidating trainer shifts...');
   
   for (const location of locations) {
     for (const day of days) {
@@ -783,8 +885,8 @@ export const generateIntelligentSchedule = async (
     }
   }
 
-  // Phase 5: Balance morning and evening classes
-  console.log('Phase 5: Balancing morning and evening distribution...');
+  // Phase 6: Balance morning and evening classes
+  console.log('Phase 6: Balancing morning and evening distribution...');
   
   for (const location of locations) {
     for (const day of days) {
@@ -835,12 +937,19 @@ export const generateIntelligentSchedule = async (
   console.log('Total classes scheduled:', optimizedClasses.length);
   console.log('Teacher utilization:', Object.entries(teacherHoursTracker).map(([teacher, hours]) => `${teacher}: ${hours}h`));
   
+  // Log 7:30 AM classes specifically
+  const earlyClasses = optimizedClasses.filter(cls => cls.time === '07:30');
+  console.log('7:30 AM classes scheduled:', earlyClasses.length);
+  earlyClasses.forEach(cls => {
+    console.log(`  ${cls.day} 7:30 AM: ${cls.classFormat} with ${cls.teacherFirstName} ${cls.teacherLastName} at ${cls.location}`);
+  });
+  
   // Final validation
   const emptySlots: string[] = [];
-  const availableSlots = getAvailableTimeSlots('Monday');
   
   for (const location of locations) {
     for (const day of days) {
+      const availableSlots = getAvailableTimeSlots(day);
       for (const time of availableSlots) {
         const classesInSlot = optimizedClasses.filter(cls => 
           cls.location === location && cls.day === day && cls.time === time
@@ -1142,7 +1251,10 @@ export const getUniqueTeachers = (csvData: ClassData[], customTeachers: any[] = 
     .filter(teacher => !teacher.includes('Nishanth') && !teacher.includes('Saniya'));
   const customTeacherNames = customTeachers.map(t => `${t.firstName} ${t.lastName}`);
   
-  return [...new Set([...csvTeachers, ...customTeacherNames])].sort();
+  // Also include teachers from default top classes
+  const defaultTopTeachers = getDefaultTopClasses().map(cls => cls.teacher);
+  
+  return [...new Set([...csvTeachers, ...customTeacherNames, ...defaultTopTeachers])].sort();
 };
 
 export const getClassFormatsForDay = (scheduledClasses: ScheduledClass[], day: string): Record<string, number> => {
